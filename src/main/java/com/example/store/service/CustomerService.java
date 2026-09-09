@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 
@@ -22,6 +23,15 @@ public class CustomerService {
     @Transactional(readOnly = true)
     public List<CustomerDTO> getAllCustomers() {
         return customerMapper.customersToCustomerDTOs(customerRepository.findAll());
+    }
+
+    @Transactional(readOnly = true)
+    public List<CustomerDTO> findCustomersByName(String name) {
+        String trimmed = name == null ? null : name.trim();
+        if (ObjectUtils.isEmpty(trimmed)) {
+            return getAllCustomers();
+        }
+        return customerMapper.customersToCustomerDTOs(customerRepository.findByNameContainingIgnoreCase(trimmed));
     }
 
     @Transactional

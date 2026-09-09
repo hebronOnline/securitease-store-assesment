@@ -16,6 +16,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -64,5 +66,24 @@ class CustomerControllerTests {
         mockMvc.perform(get("/customer"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$..name").value("John Doe"));
+    }
+
+    @Test
+    void testSearchCustomersByName() throws Exception {
+        when(customerService.findCustomersByName("john")).thenReturn(List.of(customerDTO));
+
+        mockMvc.perform(get("/customer/search").param("name", "john"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("John Doe"));
+
+        verify(customerService).findCustomersByName("john");
+        verify(customerService, never()).getAllCustomers();
+    }
+
+    @Test
+    void testSearchCustomersRequiresNameParam() throws Exception {
+        mockMvc.perform(get("/customer/search")).andExpect(status().isBadRequest());
+
+        verify(customerService, never()).findCustomersByName(any());
     }
 }

@@ -23,6 +23,11 @@ public class CustomerController {
         return customerService.getAllCustomers();
     }
 
+    @GetMapping("/search")
+    public List<CustomerDTO> searchCustomers(@RequestParam String name) {
+        return customerService.findCustomersByName(name);
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public CustomerDTO createCustomer(@RequestBody Customer customer) {
