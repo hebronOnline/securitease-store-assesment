@@ -111,6 +111,31 @@ paths:
                   format: int64
                 name:
                   type: string
+  /customer/search:
+    get:
+      summary: Search Customers by name
+      tags:
+        - store
+      parameters:
+        - name: name
+          in: query
+          required: true
+          schema:
+            type: string
+          description: >-
+            Search term matched as a case-insensitive substring against the
+            customer name.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Customer'
+      operationId: searchCustomers
+      description: Find customers whose name contains the given substring
   /products:
     get:
       summary: Get Products
