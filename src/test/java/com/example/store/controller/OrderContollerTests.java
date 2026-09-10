@@ -2,9 +2,9 @@ package com.example.store.controller;
 
 import com.example.store.dto.OrderCustomerDTO;
 import com.example.store.dto.OrderDTO;
-import com.example.store.entity.Customer;
 import com.example.store.entity.Order;
 import com.example.store.exception.OrderNotFoundException;
+import com.example.store.mapper.OrderMapperImpl;
 import com.example.store.service.OrderService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -12,11 +12,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -24,6 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(OrderController.class)
+@Import(OrderMapperImpl.class)
 class OrderControllerTests {
 
     @Autowired
@@ -35,20 +38,10 @@ class OrderControllerTests {
     @MockitoBean
     private OrderService orderService;
 
-    private Order order;
     private OrderDTO orderDTO;
 
     @BeforeEach
     void setUp() {
-        Customer customer = new Customer();
-        customer.setName("John Doe");
-        customer.setId(1L);
-
-        order = new Order();
-        order.setDescription("Test Order");
-        order.setId(1L);
-        order.setCustomer(customer);
-
         OrderCustomerDTO orderCustomerDTO = new OrderCustomerDTO();
         orderCustomerDTO.setId(1L);
         orderCustomerDTO.setName("John Doe");
@@ -65,10 +58,19 @@ class OrderControllerTests {
 
         mockMvc.perform(post("/order")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(order)))
+                        .content(objectMapper.writeValueAsString(Map.of("description", "Test Order", "customerId", 1))))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.description").value("Test Order"))
                 .andExpect(jsonPath("$.customer.name").value("John Doe"));
+    }
+
+    @Test
+    void testCreateOrderWithNullDescriptionReturnsBadRequest() throws Exception {
+        mockMvc.perform(post("/order")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("customerId", 1))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.description").value("description should be populated"));
     }
 
     @Test

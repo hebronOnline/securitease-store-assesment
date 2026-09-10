@@ -19,6 +19,8 @@ public class CacheConfig {
 
     public static final String CUSTOMERS_CACHE = "customers";
 
+    public static final String PRODUCTS_CACHE = "products";
+
     private static final Duration DEFAULT_TTL = Duration.ofMinutes(10);
 
     @Bean

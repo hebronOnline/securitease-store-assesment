@@ -1,8 +1,11 @@
 package com.example.store.controller;
 
+import com.example.store.dto.CreateOrderRequest;
 import com.example.store.dto.OrderDTO;
-import com.example.store.entity.Order;
+import com.example.store.mapper.OrderMapper;
 import com.example.store.service.OrderService;
+
+import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
 
@@ -17,6 +20,7 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
+    private final OrderMapper orderMapper;
 
     @GetMapping
     public List<OrderDTO> getAllOrders() {
@@ -30,7 +34,7 @@ public class OrderController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public OrderDTO createOrder(@RequestBody Order order) {
-        return orderService.createOrder(order);
+    public OrderDTO createOrder(@Valid @RequestBody CreateOrderRequest request) {
+        return orderService.createOrder(orderMapper.createOrderRequestToOrder(request));
     }
 }
