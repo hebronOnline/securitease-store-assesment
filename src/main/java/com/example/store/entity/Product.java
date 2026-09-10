@@ -11,22 +11,19 @@ import java.util.List;
 
 @Entity
 @Data
-@Table(name = "\"order\"")
-public class Order {
+public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String description;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id", nullable = false)
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "order_product",
+            joinColumns = @JoinColumn(name = "product_id"),
+            inverseJoinColumns = @JoinColumn(name = "order_id"))
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private Customer customer;
-
-    @ManyToMany(mappedBy = "orders", fetch = FetchType.LAZY)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private List<Product> products = new ArrayList<>();
+    private List<Order> orders = new ArrayList<>();
 }

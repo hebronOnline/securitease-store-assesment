@@ -2,6 +2,8 @@ package com.example.store.controller;
 
 import com.example.store.dto.CustomerDTO;
 import com.example.store.entity.Customer;
+import com.example.store.exception.GlobalExceptionHandler;
+import com.example.store.mapper.CustomerMapperImpl;
 import com.example.store.service.CustomerService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -9,11 +11,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -23,6 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CustomerController.class)
+@Import({CustomerMapperImpl.class, GlobalExceptionHandler.class})
 class CustomerControllerTests {
 
     @Autowired
@@ -34,15 +39,10 @@ class CustomerControllerTests {
     @MockitoBean
     private CustomerService customerService;
 
-    private Customer customer;
     private CustomerDTO customerDTO;
 
     @BeforeEach
     void setUp() {
-        customer = new Customer();
-        customer.setName("John Doe");
-        customer.setId(1L);
-
         customerDTO = new CustomerDTO();
         customerDTO.setName("John Doe");
         customerDTO.setId(1L);
@@ -54,9 +54,18 @@ class CustomerControllerTests {
 
         mockMvc.perform(post("/customer")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(customer)))
+                        .content(objectMapper.writeValueAsString(Map.of("name", "John Doe"))))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("John Doe"));
+    }
+
+    @Test
+    void testCreateCustomerWithNullNameReturnsBadRequest() throws Exception {
+        mockMvc.perform(post("/customer")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of())))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.name").value("name should be populated"));
     }
 
     @Test

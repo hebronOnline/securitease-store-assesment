@@ -1,10 +1,6 @@
 package com.example.store.exception;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
-@ResponseStatus(HttpStatus.NOT_FOUND)
-public class OrderNotFoundException extends RuntimeException {
+public class OrderNotFoundException extends NotFoundException {
 
     public OrderNotFoundException(Long id) {
         super("Order not found for id: " + id);
