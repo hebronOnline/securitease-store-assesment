@@ -2,6 +2,7 @@ package com.example.store.controller;
 
 import com.example.store.dto.ProductDTO;
 import com.example.store.entity.Product;
+import com.example.store.exception.GlobalExceptionHandler;
 import com.example.store.exception.ProductNotFoundException;
 import com.example.store.mapper.ProductMapperImpl;
 import com.example.store.service.ProductService;
@@ -25,7 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ProductController.class)
-@Import(ProductMapperImpl.class)
+@Import({ProductMapperImpl.class, GlobalExceptionHandler.class})
 class ProductControllerTests {
 
     @Autowired
@@ -37,12 +38,11 @@ class ProductControllerTests {
     @MockitoBean
     private ProductService productService;
 
-    private Product product;
     private ProductDTO productDTO;
 
     @BeforeEach
     void setUp() {
-        product = new Product();
+        Product product = new Product();
         product.setId(1L);
         product.setDescription("Widget");
 

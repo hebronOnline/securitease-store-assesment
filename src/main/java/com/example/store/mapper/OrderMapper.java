@@ -23,6 +23,8 @@ public interface OrderMapper {
 
     OrderProductDTO productToOrderProductDTO(Product product);
 
-    @Mapping(target = "customer.id", source = "customerId")
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "customer", ignore = true)
+    @Mapping(target = "products", ignore = true)
     Order createOrderRequestToOrder(CreateOrderRequest request);
 }

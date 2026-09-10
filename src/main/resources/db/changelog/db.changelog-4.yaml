@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
-      id: 3-product-schema
+      id: 4-reset-sequences
       author: developer@securitease.com
       changes:
         - sqlFile:
-            path: db/changelog/schema-products.sql
+            path: db/changelog/reset-sequences.sql

@@ -2,6 +2,7 @@ package com.example.store.controller;
 
 import com.example.store.dto.CustomerDTO;
 import com.example.store.entity.Customer;
+import com.example.store.exception.GlobalExceptionHandler;
 import com.example.store.mapper.CustomerMapperImpl;
 import com.example.store.service.CustomerService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,7 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CustomerController.class)
-@Import(CustomerMapperImpl.class)
+@Import({CustomerMapperImpl.class, GlobalExceptionHandler.class})
 class CustomerControllerTests {
 
     @Autowired

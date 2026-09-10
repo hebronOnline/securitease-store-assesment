@@ -26,6 +26,19 @@ docker run -d \
   postgres -c wal_level=logical
 ```
 
+This service also requires a Redis server running on localhost:6379. Redis backs the
+application cache (see the Caching section under Performance below); the GET endpoints will
+fail to serve if it is unavailable.
+
+You can start the Redis instance like this:
+```shell
+docker run -d \
+  --name redis \
+  --restart always \
+  -p 6379:6379 \
+  redis:7
+```
+
 # Running the application
 You should be able to run the service using
 ```shell
@@ -39,14 +52,36 @@ An order has an ID, a description, and is associated with the customer which mad
 A customer has an ID, a name, and 0 or more orders.
 
 # API
-Two endpoints are provided:
-   * /order
-   * /customer
+The service exposes three resources:
 
-Each of them supports a POST and a GET. The data model is circular - a customer owns a number of orders, and that order necessarily refers back to the customer which owns it.
-To avoid loops in the serializer, when writing out a Customer or an Order, they're mapped to CustomerDTO and OrderDTO which contain truncated versions of the dependent object - CustomerOrderDTO and OrderCustomerDTO respectively.
+### `/order`
+   * `GET /order` — list all orders (each with its customer and the products it contains)
+   * `GET /order/{id}` — fetch a single order by ID (404 if not found)
+   * `POST /order` — create an order (requires `description`, `customerId`, and a non-empty `productIds`)
 
-The API is documented in the OpenAPI file OpenAPI.yaml. Note that this spec includes part of one of the tasks below (the new /products endpoint)
+### `/customer`
+   * `GET /customer` — list all customers (each with its orders)
+   * `GET /customer/search?name={substring}` — find customers whose name contains the given substring (case-insensitive)
+   * `POST /customer` — create a customer (requires `name`)
+
+### `/products`
+   * `GET /products` — list all products, each with the IDs of the orders that contain it
+   * `GET /products/{id}` — fetch a single product by ID, with its order IDs (404 if not found)
+   * `POST /products` — create a product (requires `description`)
+
+Invalid request bodies return `400` with per-field validation messages, and unknown IDs
+return `404` — both served as JSON by a global exception handler.
+
+The data model is circular - a customer owns a number of orders, and that order necessarily refers back to the customer which owns it.
+To avoid loops in the serializer, when writing out a Customer or an Order, they're mapped to CustomerDTO and OrderDTO which contain truncated versions of the dependent object - CustomerOrderDTO and OrderCustomerDTO respectively. Likewise, an order lists its products as truncated OrderProductDTOs, and a product lists only the IDs of the orders that contain it.
+
+The API is documented in the OpenAPI file OpenAPI.yaml.
+
+# Caching
+
+The GET endpoints are backed by a Redis-backed cache (see Prerequisites) to reduce load and
+latency on repeat reads. Reads populate the cache; writes (creating an order, customer, or
+product) evict the affected entries so stale data isn't served. 
 
 # Tasks
 

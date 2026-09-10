@@ -252,6 +252,7 @@ components:
       type: object
       required:
         - description
+        - productIds
       properties:
         description:
           type: string
@@ -260,6 +261,13 @@ components:
           type: integer
           format: int64
           description: ID of the customer that owns the order.
+        productIds:
+          type: array
+          description: IDs of the products contained in the order. Must contain at least one product.
+          minItems: 1
+          items:
+            type: integer
+            format: int64
     CreateCustomerRequest:
       title: CreateCustomerRequest
       type: object

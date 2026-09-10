@@ -1,10 +1,10 @@
 package com.example.store.controller;
 
+import com.example.store.dto.CreateOrderRequest;
 import com.example.store.dto.OrderCustomerDTO;
 import com.example.store.dto.OrderDTO;
-import com.example.store.entity.Order;
+import com.example.store.exception.GlobalExceptionHandler;
 import com.example.store.exception.OrderNotFoundException;
-import com.example.store.mapper.OrderMapperImpl;
 import com.example.store.service.OrderService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(OrderController.class)
-@Import(OrderMapperImpl.class)
+@Import(GlobalExceptionHandler.class)
 class OrderControllerTests {
 
     @Autowired
@@ -54,11 +54,12 @@ class OrderControllerTests {
 
     @Test
     void testCreateOrder() throws Exception {
-        when(orderService.createOrder(any(Order.class))).thenReturn(orderDTO);
+        when(orderService.createOrder(any(CreateOrderRequest.class))).thenReturn(orderDTO);
 
         mockMvc.perform(post("/order")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Map.of("description", "Test Order", "customerId", 1))))
+                        .content(objectMapper.writeValueAsString(
+                                Map.of("description", "Test Order", "customerId", 1, "productIds", List.of(1, 2)))))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.description").value("Test Order"))
                 .andExpect(jsonPath("$.customer.name").value("John Doe"));
@@ -68,9 +69,18 @@ class OrderControllerTests {
     void testCreateOrderWithNullDescriptionReturnsBadRequest() throws Exception {
         mockMvc.perform(post("/order")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Map.of("customerId", 1))))
+                        .content(objectMapper.writeValueAsString(Map.of("customerId", 1, "productIds", List.of(1)))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.description").value("description should be populated"));
+    }
+
+    @Test
+    void testCreateOrderWithNoProductsReturnsBadRequest() throws Exception {
+        mockMvc.perform(post("/order")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("description", "Test Order"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.productIds").value("an order must contain at least one product"));
     }
 
     @Test
